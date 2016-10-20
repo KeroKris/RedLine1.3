@@ -17,7 +17,7 @@ public class GamePhysics {
      * @param thisMonster the actual monster checking, specified to ignore himself in collision checks
      * @return returns true if a collision occurs and false if monster is all clear
      */
-    public static boolean checkCollision(float targetX, float targetY, ArrayList<Monster> others, Monster thisMonster){
+    public static boolean checkCollision(float targetX, float targetY, ArrayList<Monster> others, Entity thisMonster){
 
         // Checks collision with border first
         if(checkBorderCollision(targetX, targetY)){
@@ -27,7 +27,7 @@ public class GamePhysics {
             // ignores himself in case of low speeds
             for (Monster otherMonster : others) {
                 if(otherMonster != thisMonster){
-                    if ((int)targetX == (int)otherMonster.x && (int)targetY == (int)otherMonster.y){
+                    if ((int)targetX == (int)otherMonster.xPos && (int)targetY == (int)otherMonster.yPos){
                         return true; // if collision occurs
                     }
                 }

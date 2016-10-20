@@ -9,7 +9,7 @@ package se.keroprog.redline.steptwo;
 public class BasicMonster extends Monster {
 
     public BasicMonster(float x, float y) {
-        super(x, y);
+        super((int)x, (int)y);
     }
 
 

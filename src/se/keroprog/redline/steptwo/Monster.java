@@ -6,10 +6,9 @@ package se.keroprog.redline.steptwo;
  *
  * Created by Kristoffer on 9/15/2016.
  */
-public abstract class Monster {
+public abstract class Monster extends Entity{
     //starting position and skin
-    public float x, y;
-    public char skin;
+    public float xPos, yPos;
 
     // variables handling movement
     public float xVelocity, yVelocity, speed;
@@ -20,9 +19,11 @@ public abstract class Monster {
      * @param x takes a starting X-coordinate
      * @param y and a starting Y-coordinate
      */
-    public Monster(float x, float y){
-        this.x = x;
-        this.y = y;
+    public Monster(int x, int y){
+
+        super(x, y);
+        this.xPos = x;
+        this.yPos = y;
         this.speed = 0.7f;
         this.skin = 'A';
 
@@ -38,7 +39,7 @@ public abstract class Monster {
         // calculates the direction to move first
         calcDirection(player.x, player.y);
         // checks collisions
-        if(!GamePhysics.checkCollision((int)(x + xVelocity),(int) (y + yVelocity),
+        if(!GamePhysics.checkCollision((int)(xPos + xVelocity),(int) (yPos + yVelocity),
                 Main.getMonsterList(), this)){
             // if everything looks ok, calls the move method
             move(xVelocity, yVelocity);
@@ -58,8 +59,8 @@ public abstract class Monster {
         float totalAllowedMovement = speed;
 
         // Calculating the distances in absolute terms
-        xDist = Math.abs(targetX - x);
-        yDist = Math.abs(targetY - y);
+        xDist = Math.abs(targetX - xPos);
+        yDist = Math.abs(targetY - yPos);
 
         // Calculates the real distance in a vector and derives the xVelocity and the yVelocity from the vector
         totalDist = Math.sqrt(Math.pow(xDist, 2) + Math.pow(yDist, 2));
@@ -67,10 +68,10 @@ public abstract class Monster {
         yVelocity = totalAllowedMovement - xVelocity;
 
         // Negates the values if target is to the left of, and/or above the monster
-        if(targetX < x){
+        if(targetX < xPos){
             xVelocity *= -1;
         }
-        if(targetY < y){
+        if(targetY < yPos){
             yVelocity *= -1;
         }
     }
@@ -81,8 +82,8 @@ public abstract class Monster {
      * @param yMove the Y amount wanted to move
      */
     public void move(float xMove, float yMove){
-        x += xMove;
-        y += yMove;
+        xPos += xMove;
+        yPos += yMove;
     }
 
 

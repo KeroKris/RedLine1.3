@@ -4,28 +4,37 @@ import com.googlecode.lanterna.*;
 import com.googlecode.lanterna.input.Key;
 import com.googlecode.lanterna.terminal.Terminal;
 
+import javax.swing.*;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 
 public class Main {
     private static int boardSize = 20;
     private static ArrayList<Monster> monsterList = new ArrayList<>();
-    private static int turn = 1;
-    static boolean monsterSpawn = false;
+    private static int turn = 1, nextGoodieTurn;
+    private static boolean monsterSpawn = false;
+    private static ArrayList<Goodie> goodieList;
+    private static double maxTurnsUntilGoodie = 100;
+    private static Player player1;
+    private static Terminal terminal;
+    private static Highscore highscore;
+    private static boolean newHighscore;
+    private static int newHighscoreRank;
 
     public static void main(String[] args) throws InterruptedException {
 
         // Sets up the terminal window
-        Terminal terminal = TerminalFacade.createTerminal(System.in, System.out, Charset.forName("UTF8"));
+        terminal = TerminalFacade.createTerminal(System.in, System.out, Charset.forName("UTF8"));
         terminal.enterPrivateMode();
         terminal.setCursorVisible(false);
 
         // Initializing starting values
         boolean gameOver = false;
 
+        highscore = new Highscore();
 
         // Initializing the player and the starting enemies
-        Player player1 = new Player(10,10);
+        player1 = new Player(10,10);
 
         Monster enemy1 = new BasicMonster(0,0);
         Monster enemy2 = new ChargingMonster(0,20);
@@ -33,6 +42,10 @@ public class Main {
         Monster enemy4 = new ChargingMonster(20,20);
         Monster enemy5 = new ChargingMonster(10,20);
 
+        // sets the turn for the first goodie to spawn
+        nextGoodieTurn = (int) (Math.random()*maxTurnsUntilGoodie) + 1;
+        System.out.println("next goodie turn is: " + nextGoodieTurn);
+        goodieList = new ArrayList<>();
 
         // populating the monsterList
         monsterList.add(enemy1);
@@ -45,24 +58,22 @@ public class Main {
         while(true){
 
             if (!gameOver){  // Until game over, will update screen and let player move
-                updateScreen(player1, monsterList, terminal);
+                updateScreen();
 
                 // Player movement
-                movePlayer(player1, terminal);
+                player1.move();
 
                 // Runs the AI for all the monsters in the monsterList
-                // Sets gameOver to true if an enemy catches player
-                gameOver = gameLogic(player1, monsterList);
+                // Sets gameOver to true if a monster catches player
+                gameOver = gameLogic();
 
-                // updates the screen one last time to show the enemy catching the player
-                // and prints the game over message
+                //runs the game over event if a monster caught player
                 if(gameOver) {
-                    updateScreen(player1, monsterList, terminal);
-                    printText(10, 10, "Game Over!", terminal);
+                    gameOverEvent();
                 }
 
-                // Adds a new BasicMonster every 20
-                // except for every 100 turns where a ChargingMonster will be added-
+                // Adds a new BasicMonster every 20 turns,
+                // except for every 100 turns where a ChargingMonster will be added
                 if(turn % 100 == 0){
                     monsterList.add(new ChargingMonster(20,20));
                     monsterSpawn = true;
@@ -75,41 +86,107 @@ public class Main {
                         monsterSpawn = true;
                     }
                 }
+
+                // spawns a new goodie if the time has come
+                if (turn == nextGoodieTurn){
+                    spawnGoodie();
+                }
             }
         }
     }
 
+
     /**
-     * printText let's the game print a text at the specified starting position
+     * prompts the player for a name if player made the highscore list
+     *  updates the screen one last time to show the enemy catching the player
+     * and prints the game over message as well as the updated highscore list
+     */
+    private static void gameOverEvent() {
+
+                newHighscore = false;
+        Score tempScore = null;
+        // loops through all the highscores to see if the new score qualifies
+        for (Score score :
+                highscore.getCurrentHighscore()) {
+
+            int highscoreIndex = highscore.getCurrentHighscore().indexOf(score);
+
+            if(player1.getScore() > score.getScore() && !newHighscore){
+
+                // prompts the player for his name
+                String name = JOptionPane.showInputDialog("Please enter your name: ");
+
+                // safeguards against names that would mess up the highscore board or file
+                if(name.length() > 12 || name.contains(",")){
+                    name = "default";
+                }
+                newHighscoreRank = highscoreIndex;
+                newHighscore = true;
+                // saves the tempScore to be placed in the highscore list.
+                tempScore = new Score(highscoreIndex + 1, name, player1.getScore());
+            }
+            if(newHighscore){
+                // changes the rank on the remaining scores to their proper number
+                score.setRank(score.getRank()+1);
+            }
+        }
+
+        if(tempScore != null){
+            // adds the tempScore to the highscore CopyOnWriteArrayList
+            highscore.addHighscore(tempScore.getRank()-1, tempScore);
+        }
+
+        // updates the screen one last time with the new highscore
+        // saves the highscore to the txt file and writes the game over message
+        updateScreen();
+        highscore.writeToFile();
+        printText(10, 10, "Game Over!");
+    }
+
+    /**
+     * printText lets the game print a text at the specified starting position
      * @param x X-coordinate for the first character
      * @param y Y-coordinate for the first character
      * @param s String to be printed
-     * @param terminal terminal to print the text
      */
-    private static void printText(int x, int y, String s, Terminal terminal) {
-        terminal.moveCursor(x, y);
+    private static void printText(int x, int y, String s) {
+
         // Loops through the String and prints every character
         for (int i = 0; i < s.length(); i++) {
-            terminal.moveCursor(x + i, y);
-            terminal.putCharacter(s.charAt(i));
+            Main.getTerminal().moveCursor(x + i, y);
+            Main.getTerminal().putCharacter(s.charAt(i));
         }
-        terminal.moveCursor(0,0);
+        Main.getTerminal().moveCursor(0,0);
+    }
+
+
+    /**
+     * Prints a list of Strings to the screen
+     * @param startX X-coordinate for the first character of the first String
+     * @param startY Y-coordinate for the first character of the first String
+     * @param stringArray The String Array to be printed
+     */
+    public static void printTextList(int startX, int startY, String[] stringArray){
+
+        for (int i = 0; i < stringArray.length; i++) {
+
+            printText(startX, startY + i, stringArray[i]);
+        }
+        Main.getTerminal().moveCursor(0,0);
     }
 
     /**
      * Activates the monsters and checks if any monsters caught the player
-     * @param player1   the player
-     * @param monsterList    the list of enemies
      * @return  returns true if the enemy catches the player
      */
-    private static boolean gameLogic(Player player1, ArrayList<Monster> monsterList) {
+    private static boolean gameLogic() {
 
         for (Monster monster: monsterList) {
             // calls the specific monster types' hunt method
             monster.hunt(player1);
 
             // returns true if the enemy has caught the player
-            if (player1.x == (int) monster.x && player1.y == (int) monster.y){
+            if (player1.x == (int) monster.xPos && player1.y == (int) monster.yPos){
                 return true;
             }
         }
@@ -119,11 +196,11 @@ public class Main {
 
     /**
      * Updates the screen. Draws the player and the enemy to the terminal screen
-     * @param player the player
-     * @param monsterList the enemies
-     * @param terminal the terminal
      */
-    private static void updateScreen(Player player, ArrayList<Monster> monsterList, Terminal terminal) {
+    private static void updateScreen() {
+
+        Terminal terminal = Main.getTerminal();
+
         terminal.clearScreen();  // clears the screen before drawing anything
 
         // Draws the game border in red to establish a more hostile environment
@@ -138,73 +215,96 @@ public class Main {
         }
 
         // Prints the turn tracker. Can you beat your personal record? ;)
-        // Also prints the amount of enemies on the screen
-        printText(0,22, "Turn: " + turn + "   Enemies: " + monsterList.size(), terminal);
+        // Also prints the amount of enemies, current score and the highscore list.
+        printText(0,22, "Turn: " + turn + "   Enemies: " + monsterList.size());
+        printText(0, 24,"your Current score is: " + player1.getScore());
+        printText(29, 2, "HIGHSCORE");
+        printTextList(25, 4, highscore.getHighScoreAsStringArray());
+
+        // highlights the new highscore on the list
+        if (newHighscore){
+            printText(47,4 + newHighscoreRank, "<--- New Highscore!!");
+        }
 
         // Prints a message if a monster spawned this turn
         if(monsterSpawn){
-            printText(2, 23, "Monster Spawned!", terminal);
+            printText(2, 23, "Monster Spawned!");
             monsterSpawn = false;
         }
 
+        //Updates and draws the goodies on the map
+        updateGoodies();
+
 
         // Draws the player as an Ö
-        terminal.moveCursor(player.x, player.y);
+        terminal.moveCursor(player1.x, player1.y);
         terminal.putCharacter('Ö');
 
         // Draws all the monsters from the monsterList with their specific skin
         terminal.applyForegroundColor(Terminal.Color.RED); // Makes enemies red
         for (Monster monster: monsterList) {
-            terminal.moveCursor((int) monster.x, (int) monster.y);
+            terminal.moveCursor((int) monster.xPos, (int) monster.yPos);
             terminal.putCharacter(monster.skin);
         }
         terminal.applyForegroundColor(Terminal.Color.WHITE); // Resets the color to white
         terminal.moveCursor(0,0); // resets cursor to default
     }
 
+
     /**
-     * Method to handle player input and move the player accordingly
-     * @param player the player
-     * @param terminal the terminal
-     * @throws InterruptedException
+     * Spawns a new Goodie that the player can pick up for extra points
      */
-    public static void movePlayer(Player player, Terminal terminal) throws InterruptedException {
+    public static void spawnGoodie(){
 
-        //wait for a key to be pressed
-        Key key;
-        do{
-            Thread.sleep(5);
-            key = terminal.readInput();
+        // randomizes a position on the board for the goodie to spawn
+        int randomX = (int) (Math.random()*(boardSize-1));
+        int randomY = (int) (Math.random()*(boardSize-1));
 
-            // Moves the player according to key input as long as within board size
-            if(key != null){
-                switch (key.getKind()){
-                    case ArrowUp:
-                        if(!GamePhysics.checkBorderCollision(player.x, player.y-1)){    // checks hit
-                            player.y--;                                                 // moves player
-                        }
-                        break;
-                    case ArrowDown:
-                        if(!GamePhysics.checkBorderCollision(player.x, player.y +1)){
-                            player.y++;
-                        }
-                        break;
-                    case ArrowLeft:
-                        if(!GamePhysics.checkBorderCollision(player.x -1, player.y)){
-                            player.x--;
-                        }
-                        break;
-                    case ArrowRight:
-                        if(!GamePhysics.checkBorderCollision(player.x +1, player.y)){
-                            player.x++;
-                        }
-                        break;
-                }
-                turn++;
-            }
+        // adds the goodie to the goodieList if it doesn't collide with a monster or the player
+        if(!GamePhysics.checkCollision(0,0,monsterList, player1)){
 
+            goodieList.add(new Goodie(randomX, randomY, 1000 + (turn /100)*250, turn + 25));
+            nextGoodieTurn += Math.random()*maxTurnsUntilGoodie + 1;
+        }else{
+            // otherwise tries again next turn
+            nextGoodieTurn++;
         }
-        while(key == null);
+        System.out.println(nextGoodieTurn);
+    }
+
+    /**
+     * Updates all the goodies, deletes them if they are picked up or expires.
+     */
+    public static void updateGoodies(){
+
+        Goodie expireGoodie = null;
+        Goodie scoreGoodie = null;
+        terminal.applyForegroundColor(Terminal.Color.YELLOW);
+        for (Goodie g :
+                goodieList) {
+            if(g.getLifeSpan() == turn){
+                expireGoodie = g;
+            }
+            if(g.getX()== player1.getX() && g.getY() == player1.getY() ){
+                scoreGoodie = g;
+            }
+            terminal.moveCursor(g.getX(),g.getY());
+            terminal.putCharacter(g.getSkin());
+        }
+        if(expireGoodie != null){
+            goodieList.remove(expireGoodie);
+        }
+        if(scoreGoodie != null){
+            player1.scoreReward(scoreGoodie.getReward());
+            printText(25, 20, "you scored a goodie for: " + scoreGoodie.getReward() + " points!");
+            goodieList.remove(scoreGoodie);
+        }
+        terminal.applyForegroundColor(Terminal.Color.WHITE);
+    }
+
+
+    public static Terminal getTerminal() {
+        return terminal;
     }
 
     /**
@@ -214,6 +314,10 @@ public class Main {
     public static ArrayList<Monster> getMonsterList(){
 
         return monsterList;
+    }
+
+    public static void endTurn(){
+        turn++;
     }
 
     /**

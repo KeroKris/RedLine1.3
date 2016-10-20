@@ -18,7 +18,7 @@ public class ChargingMonster extends Monster {
      * @param y Starting Y-coordinate
      */
     public ChargingMonster(float x, float y) {
-        super(x, y);
+        super((int)x, (int)y);
         this.speed = startSpeed;
         this.skin = '\u06DD';
     }
@@ -45,7 +45,7 @@ public class ChargingMonster extends Monster {
      */
     public void charge(){
 
-        if(!GamePhysics.checkCollision(x + xVelocity, y + yVelocity, Main.getMonsterList(), this)){
+        if(!GamePhysics.checkCollision(xPos + xVelocity, yPos + yVelocity, Main.getMonsterList(), this)){
             move(xVelocity, yVelocity);
         } else {
             hasTarget = false;
