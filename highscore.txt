@@ -1,0 +1,10 @@
+1,Hilmar,28040
+2,Hilmar,23766
+3,Player1,23465
+4,Hilmar,10470
+5,Hilmar,7720
+6,Hilmar,6960
+7,Hilmar,6810
+8,name,6000
+9,Hilmar,5462
+10,name,4410
