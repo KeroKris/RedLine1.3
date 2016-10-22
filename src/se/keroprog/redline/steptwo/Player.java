@@ -1,6 +1,7 @@
 package se.keroprog.redline.steptwo;
 
 import com.googlecode.lanterna.input.Key;
+import com.googlecode.lanterna.terminal.Terminal;
 
 /**
  * Basic player class, only contains its coordinates for now.
@@ -21,6 +22,7 @@ public class Player extends Entity{
         this.skin = 'X';
         this.score = 0;
         this.scorePerTurn = 10;
+        this.color = Terminal.Color.WHITE;
     }
 
 

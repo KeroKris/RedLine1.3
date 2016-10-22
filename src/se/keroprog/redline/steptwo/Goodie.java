@@ -1,5 +1,7 @@
 package se.keroprog.redline.steptwo;
 
+import com.googlecode.lanterna.terminal.Terminal;
+
 /**
  * Goodie that player can pick up to scoreGoodie extra points
  *
@@ -15,6 +17,7 @@ public class Goodie extends Entity{
         this.reward = reward;
         this.lifeSpan = lifeSpan;
         this.skin = '$';
+        this.color = Terminal.Color.YELLOW;
 
     }
 

@@ -25,7 +25,6 @@ public abstract class Monster extends Entity{
         this.xPos = x;
         this.yPos = y;
         this.speed = 0.7f;
-        this.skin = 'A';
 
     }
 
@@ -86,6 +85,12 @@ public abstract class Monster extends Entity{
         yPos += yMove;
     }
 
+    @Override
+    public void draw(){
+        Main.getTerminal().applyForegroundColor(color);
+        Main.getTerminal().moveCursor((int)xPos, (int)yPos);
+        Main.getTerminal().putCharacter(skin);
+    }
 
 
 }

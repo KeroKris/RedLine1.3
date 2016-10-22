@@ -1,6 +1,8 @@
 package se.keroprog.redline.steptwo;
 
 
+import com.googlecode.lanterna.terminal.Terminal;
+
 /**
  * A charging monster, designed to acquire a target once at the players position and then charge toward that position
  * until it collides with a border or another monster. Then acquire a new target position and repeat.
@@ -21,6 +23,7 @@ public class ChargingMonster extends Monster {
         super((int)x, (int)y);
         this.speed = startSpeed;
         this.skin = '\u06DD';
+        this.color = Terminal.Color.RED;
     }
 
     @Override

@@ -26,17 +26,13 @@ public class Highscore {
 
         try {
             BufferedReader br = new BufferedReader(new FileReader("highscore.txt"));
-            int i = 0;
             while((scoreLine = br.readLine()) != null){
 
                 String[] scoreComponents = scoreLine.split(",");
                 highscore.add(new Score(Integer.parseInt(scoreComponents[0]), scoreComponents[1], Long.parseLong(scoreComponents[2])));
-                i++;
 
             }
-//            for (int i = 0; i < 10; i++) {
-//                highscore[i] = scoreLine;
-//            }
+
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {

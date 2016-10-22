@@ -1,8 +1,12 @@
 package se.keroprog.redline.steptwo;
 
 /**
+ * Class made to enable parsing and storing of the information in the highscore file to the highscore class.
+ * Each individual score is treated as an object in a CopyOnWriteArrayList in the highscore class.
+ *
  * Created by Kristoffer on 2016-10-20.
  */
+
 public class Score {
     private int rank;
     private String name;
@@ -35,8 +39,6 @@ public class Score {
     @Override
     public String toString() {
 
-        String scoreToString = String.format("%d.\t%s\t%d",rank, name, score);
-
-        return scoreToString;
+        return String.format("%d.\t%s\t%d",rank, name, score);
     }
 }
