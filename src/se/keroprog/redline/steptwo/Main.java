@@ -1,13 +1,8 @@
 package se.keroprog.redline.steptwo;
 
 import com.googlecode.lanterna.*;
+import com.googlecode.lanterna.input.Key;
 import com.googlecode.lanterna.terminal.Terminal;
-import com.googlecode.lanterna.terminal.TerminalPosition;
-import com.googlecode.lanterna.terminal.TerminalSize;
-import com.googlecode.lanterna.terminal.swing.TerminalAppearance;
-import com.sun.org.apache.regexp.internal.RE;
-
-import javax.smartcardio.TerminalFactory;
 import javax.swing.*;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -40,16 +35,16 @@ public class Main {
         highscore = new Highscore();
 
         // Initializing the player and the starting enemies
-        player1 = new Player(10,10);
+        player1 = new Player(10, 10);
 
-        Monster enemy1 = new BasicMonster(0,0);
-        Monster enemy2 = new ChargingMonster(0,20);
-        Monster enemy3 = new ChargingMonster(20,0);
-        Monster enemy4 = new ChargingMonster(20,20);
-        Monster enemy5 = new ChargingMonster(10,20);
+        Monster enemy1 = new BasicMonster(0, 0);
+        Monster enemy2 = new ChargingMonster(0, 20);
+        Monster enemy3 = new ChargingMonster(20, 0);
+        Monster enemy4 = new ChargingMonster(20, 20);
+        Monster enemy5 = new ChargingMonster(10, 20);
 
         // sets the turn for the first goodie to spawn
-        nextGoodieTurn = (int) (Math.random()*maxTurnsUntilGoodie) + 2;
+        nextGoodieTurn = (int) (Math.random() * maxTurnsUntilGoodie) + 2;
         System.out.println("next goodie turn is: " + nextGoodieTurn);
         goodieList = new ArrayList<>();
 
@@ -61,9 +56,9 @@ public class Main {
         monsterList.add(enemy5);
 
         // Main game loop
-        while(true){
+        while (true) {
 
-            if (!gameOver){  // Until game over, will update screen and let player move
+            if (!gameOver) {  // Until game over, will update screen and let player move
                 updateScreen();
 
                 // Player movement
@@ -74,27 +69,46 @@ public class Main {
                 gameOver = gameLogic();
 
                 //runs the game over event if a monster caught player
-                if(gameOver) {
+                if (gameOver) {
                     gameOverEvent();
-                }
 
-                // Adds a new BasicMonster every 20 turns,
-                // except for every 100 turns where a ChargingMonster will be added
+                    //wait for a key to be pressed
+                    Key key;
+                    do {
+                        Thread.sleep(5);
+                        key = Main.getTerminal().readInput();
 
-                if(turn % 100 == 0){
-                    spawnChargingMonster();
-                } else if(turn % 20 == 0){
-                    spawnBasicMonster();
-                }
+                        if (key != null) {
+                            switch (key.getKind()) {
+                                case Escape:
+                                    System.exit(0);
+                                    break;
+                                // Plan to add a rerun method that will create a new game
+                            }
+                        }
+
+                    }
+                    while (key == null);
+            }
+
+            // Adds a new BasicMonster every 20 turns,
+            // except for every 100 turns where a ChargingMonster will be added
+
+            if (turn % 100 == 0) {
+                spawnChargingMonster();
+            } else if (turn % 20 == 0) {
+                spawnBasicMonster();
+            }
 
 
-                // spawns a new goodie if the time has come
-                if (turn == nextGoodieTurn){
-                    spawnGoodie();
-                }
+            // spawns a new goodie if the time has come
+            if (turn == nextGoodieTurn) {
+                spawnGoodie();
             }
         }
     }
+
+}
 
     private static void spawnBasicMonster() {
 
@@ -164,6 +178,9 @@ public class Main {
         updateScreen();
         highscore.writeToFile();
         printText(10, 10, "Game Over!", Terminal.Color.WHITE);
+
+
+
     }
 
     /**

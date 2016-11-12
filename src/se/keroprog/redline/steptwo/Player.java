@@ -77,6 +77,9 @@ public class Player extends Entity{
                             x++;
                         }
                         break;
+                    case Escape:
+                        System.exit(0);
+                        break;
                 }
                 turnScore();
                 Main.endTurn();

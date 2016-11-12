@@ -2,9 +2,9 @@
 2,Hilmar,28040
 3,Hilmar,23766
 4,Player1,23465
-5,Hilmar,10470
-6,Hilmar,10080
-7,Hilmar,8340
-8,Hilmar,7720
-9,Hilmar,6960
-10,Hilmar,6810
+5,Hilmar,16710
+6,Hilmar,10730
+7,Hilmar,10470
+8,Hilmar,10080
+9,default,8740
+10,Hilmar,8350
